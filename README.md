@@ -1,4 +1,9 @@
 ## Kubernetes on Azure via Kismatic Enterprise Toolkit
+The focus of this code is to deploy a minimal Kubernetes cluster into Microsoft Azure for testing and training purposes.
+Upon successful completion, the following VM infrastructure will have been provisioned:
+  * Bastion node (public IP, restricted access to SSH)
+  * 1 k8s master node, with etcd co-located (public IP, restricted access to SSH and k8s API)
+  * 2 k8s worker nodes, 1 node configured with nginx ingress controller (private IP only)
 
 ### Prerequisites
 * Microsoft Azure account (https://azure.microsoft.com/en-us/free/)
@@ -6,7 +11,6 @@
 * Terraform v0.11+ (https://www.terraform.io/downloads.html)
 
 #### Usage
-
 Create a customized `terraform/terraform.tfvars` file ([tfvars file reference](https://www.terraform.io/intro/getting-started/variables.html#from-a-file)), key configurations are:
 
 | Key               | Description       |
