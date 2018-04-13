@@ -10,7 +10,7 @@ Upon successful completion, the following VM infrastructure will have been provi
 * Azure CLI 2.0 (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 * Terraform v0.11+ (https://www.terraform.io/downloads.html)
 
-#### Usage
+### Usage
 Create a customized `terraform/terraform.tfvars` file ([tfvars file reference](https://www.terraform.io/intro/getting-started/variables.html#from-a-file)), key configurations are:
 
 | Key               | Description       |
