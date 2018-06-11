@@ -1,26 +1,30 @@
-ssh-keypair:
-	mkdir ssh
-	cd ssh && ssh-keygen -t rsa -f cluster.pem -N ""
+create-keypair:
+	test -d ssh || mkdir ssh
+	cd ssh && ssh-keygen -t rsa -f cluster.pem -N "" -C "k8s-testing-key"
 	chmod 600 ssh/cluster.pem
 
-plan-cluster-vms:
+plan-vms:
 	cd terraform && terraform init && terraform plan
 
-cluster-vms:
+create-vms:
 	cd terraform && terraform init && terraform apply
 
-destroy-cluster-vms:
+destroy-vms:
 	cd terraform && terraform init && terraform destroy --force
+	cd terraform && rm terraform.tfstate terraform.tfstate.backup
+
+cleanup:
+	test -d ssh && rm -r ssh/
 
 # ################################################
 # Commands to execute from bastion node
 # ################################################
 
-validate-k8s-cluster:
+prepare-kubernetes:
 	kismatic install validate -f kismatic-cluster.yaml
 
-k8s-cluster:
-	kismatic install apply -f kismatic-cluster.yaml
+create-kubernetes:
+	kismatic install apply -f kismatic-cluster.yaml --skip-preflight
 	cp generated/kubeconfig .
 	mkdir ~/.kube/
 	cp kubeconfig ~/.kube/config
