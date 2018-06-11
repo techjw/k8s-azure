@@ -1,55 +1,19 @@
-variable "bastion_vm_size" {
-  default = "Standard_B2ms"
-}
+variable "bastion_vm_size"  { default = "Standard_B2ms" }
+variable "master_vm_size"   { default = "Standard_B2ms" }
+variable "worker_vm_size"   { default = "Standard_B2ms" }
+variable "worker_count"     { default = 2 }
 
-variable "master_vm_size" {
-  default = "Standard_B2ms"
-}
+variable "azure_region" { default = "eastus" }
+variable "vnet_cidr"    { default = "10.1.0.0/24" }
+variable "local_cidr"   { default = "127.0.0.1/32" }
+variable "ssh_key"      { default = "../ssh/cluster.pem.pub" }
 
-variable "worker_vm_size" {
-  default = "Standard_B2ms"
-}
+variable "adminuser" { default = "kubeuser" }
 
-variable "worker_count" {
-  default = 2
-}
+variable "tenant_id" { default = "your_tenant_id" }
+variable "subscription_id" { default = "your_subscription_id" }
+variable "client_id" { default = "your_client_id" }
+variable "client_secret" { default = "your_client_secret" }
 
-variable "azure_region" {
-  default = "East US"
-}
-
-variable "local_ip_cidr" {
-  default = "127.0.0.1/32"
-}
-
-variable "vnet_cidr" {
-  default = "10.1.0.0/24"
-}
-
-variable "adminuser" {
-  default = "kubeuser"
-}
-
-variable "ssh_key" {
-  default = "../ssh/cluster.pem.pub"
-}
-
-variable "tenant_id" {
-  default = "your_tenant_id"
-}
-
-variable "subscription_id" {
-  default = "your_subscription_id"
-}
-
-variable "aadclient_id" {
-  default = "your_aadclient_id"
-}
-
-variable "aadclient_secret" {
-  default = "your_aadclient_secret"
-}
-
-variable "env_tag" {
-  default = "k8s-apprenda"
-}
+variable "environment"  { default = "testing" }
+variable "project"      { default = "k8s" }
