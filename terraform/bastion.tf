@@ -1,10 +1,16 @@
 data "template_file" "azure_cloud_provider" {
   template = "${file("${path.module}/user-data/azure-cloud-provider.conf.tpl")}"
   vars {
-    tenant_id         = "${var.tenant_id}"
-    subscription_id   = "${var.subscription_id}"
-    aadclient_id      = "${var.aadclient_id}"
-    aadclient_secret  = "${var.aadclient_secret}"
+    tenant_id       = "${var.tenant_id}"
+    subscription_id = "${var.subscription_id}"
+    client_id       = "${var.client_id}"
+    client_secret   = "${var.client_secret}"
+    az_location     = "${var.azure_region}"
+    az_rg           = "${azurerm_resource_group.kubernetes.name}"
+    az_vnet         = "${azurerm_virtual_network.kubernetes.name}"
+    az_subnet       = "${azurerm_subnet.kubernetes.name}"
+    az_nsg          = "${azurerm_network_security_group.kubernetes.name}"
+    az_rt           = "${azurerm_route_table.kubernetes.name}"
   }
 }
 
@@ -24,7 +30,8 @@ resource "azurerm_public_ip" "k8sbastion" {
   resource_group_name          = "${azurerm_resource_group.kubernetes.name}"
   public_ip_address_allocation = "static"
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 resource "azurerm_network_interface" "k8sbastion" {
@@ -38,7 +45,8 @@ resource "azurerm_network_interface" "k8sbastion" {
     public_ip_address_id          = "${azurerm_public_ip.k8sbastion.id}"
   }
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 
@@ -73,7 +81,8 @@ resource "azurerm_virtual_machine" "k8sbastion" {
     }]
   }
   tags {
-    environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 
   connection {
@@ -106,17 +115,17 @@ resource "azurerm_virtual_machine" "k8sbastion" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt-get update -y",
-      "sudo apt-get install -y build-essential git wget"
+      "sudo apt-get update -y -q",
+      "sudo apt-get install -y -q build-essential git wget"
     ]
   }
   # Fetch and Extract the Kismatic tar file, setup both Kubectl and Helm
   provisioner "remote-exec" {
     inline = [
       "chmod 600 cluster.pem azure-cloud-provider.conf kismatic-cluster.yaml",
-      "curl -OL https://github.com/apprenda/kismatic/releases/download/v1.9.0/kismatic-v1.9.0-linux-amd64.tar.gz",
-      "tar zxf kismatic-v1.9.0-linux-amd64.tar.gz",
-      "rm kismatic-v1.9.0-linux-amd64.tar.gz",
+      "curl -o kismatic.tar.gz -Ls https://github.com/apprenda/kismatic/releases/download/v1.11.1/kismatic-v1.11.1-linux-amd64.tar.gz",
+      "tar zxf kismatic.tar.gz",
+      "rm kismatic.tar.gz",
       "sudo cp helm /usr/local/bin/helm",
       "sudo cp kubectl /usr/local/bin/kubectl",
       "echo 'source <(kubectl completion bash)' >> ~/.bashrc",
@@ -124,9 +133,3 @@ resource "azurerm_virtual_machine" "k8sbastion" {
     ]
   }
 }
-
-# data "azurerm_public_ip" "k8sbastion" {
-#   name                = "${azurerm_public_ip.k8sbastion.name}"
-#   resource_group_name = "${azurerm_resource_group.kubernetes.name}"
-#   depends_on          = ["azurerm_virtual_machine.k8sbastion"]
-# }

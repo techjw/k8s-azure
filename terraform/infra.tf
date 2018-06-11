@@ -1,128 +1,81 @@
 provider "azurerm" {
-  version = "~> 1.1"
+  tenant_id       = "${var.tenant_id}"
+  subscription_id = "${var.subscription_id}"
+  client_id       = "${var.client_id}"
+  client_secret   = "${var.client_secret}"
 }
 
 resource "azurerm_resource_group" "kubernetes" {
-  name     = "kubernetes"
+  name     = "${var.project}-${var.environment}-rg"
   location = "${var.azure_region}"
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 
 resource "azurerm_virtual_network" "kubernetes" {
-  name                = "kubernetes"
+  name                = "${var.project}-${var.environment}-vnet"
   address_space       = ["${var.vnet_cidr}"]
   location            = "${azurerm_resource_group.kubernetes.location}"
   resource_group_name = "${azurerm_resource_group.kubernetes.name}"
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 
 resource "azurerm_network_security_group" "kubernetes" {
-    name                = "kubernetes"
+    name                = "${var.project}-${var.environment}-nsg"
     location            = "${var.azure_region}"
     resource_group_name = "${azurerm_resource_group.kubernetes.name}"
     security_rule {
-        name                       = "Internal_SSH"
-        priority                   = 1001
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "22"
-        source_address_prefix      = "${var.vnet_cidr}"
-        destination_address_prefix = "*"
-    }
-    security_rule {
         name                       = "SSH"
-        priority                   = 1002
+        priority                   = 3001
         direction                  = "Inbound"
         access                     = "Allow"
         protocol                   = "Tcp"
         source_port_range          = "*"
         destination_port_range     = "22"
-        source_address_prefix      = "${var.local_ip_cidr}"
-        destination_address_prefix = "*"
-    }
-    security_rule {
-        name                       = "DenyRandomSSH"
-        priority                   = 1003
-        direction                  = "Inbound"
-        access                     = "Deny"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "22"
-        source_address_prefix      = "*"
-        destination_address_prefix = "*"
-    }
-    tags {
-        environment = "${var.env_tag}"
-    }
-}
-
-resource "azurerm_network_security_group" "kubeapi" {
-    name                = "kubeapi"
-    location            = "${var.azure_region}"
-    resource_group_name = "${azurerm_resource_group.kubernetes.name}"
-    security_rule {
-        name                       = "Internal_SSH"
-        priority                   = 2001
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "22"
-        source_address_prefix      = "${var.vnet_cidr}"
-        destination_address_prefix = "*"
-    }
-    security_rule {
-        name                       = "SSH"
-        priority                   = 2002
-        direction                  = "Inbound"
-        access                     = "Allow"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "22"
-        source_address_prefix      = "${var.local_ip_cidr}"
-        destination_address_prefix = "*"
-    }
-    security_rule {
-        name                       = "DenyRandomSSH"
-        priority                   = 2003
-        direction                  = "Inbound"
-        access                     = "Deny"
-        protocol                   = "Tcp"
-        source_port_range          = "*"
-        destination_port_range     = "22"
-        source_address_prefix      = "*"
+        source_address_prefixes    = ["${var.vnet_cidr}", "${var.local_cidr}"]
         destination_address_prefix = "*"
     }
     security_rule {
         name                       = "Kubernetes_API"
-        priority                   = 2004
+        priority                   = 3002
         direction                  = "Inbound"
         access                     = "Allow"
         protocol                   = "Tcp"
         source_port_range          = "*"
         destination_port_range     = "6443"
-        source_address_prefix      = "${var.local_ip_cidr}"
+        source_address_prefixes    = ["${var.vnet_cidr}", "${var.local_cidr}"]
+        destination_address_prefix = "*"
+    }
+    security_rule {
+        name                       = "Kubernetes_Ingress"
+        priority                   = 3003
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "443"
+        source_address_prefixes    = ["${var.vnet_cidr}", "${var.local_cidr}"]
         destination_address_prefix = "*"
     }
     tags {
-        environment = "${var.env_tag}"
+      environment = "${var.environment}"
+      project = "${var.project}"
     }
 }
 
 resource "azurerm_route_table" "kubernetes" {
-  name                = "kubernetes"
+  name                = "${var.project}-${var.environment}-rt"
   location            = "${azurerm_resource_group.kubernetes.location}"
   resource_group_name = "${azurerm_resource_group.kubernetes.name}"
 }
 
 resource "azurerm_subnet" "kubernetes" {
-  name                      = "kubernetes"
+  name                      = "${var.project}-${var.environment}-subnet"
   resource_group_name       = "${azurerm_resource_group.kubernetes.name}"
   virtual_network_name      = "${azurerm_virtual_network.kubernetes.name}"
   address_prefix            = "${var.vnet_cidr}"

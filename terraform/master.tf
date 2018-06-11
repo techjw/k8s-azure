@@ -4,7 +4,8 @@ resource "azurerm_public_ip" "k8smaster" {
   resource_group_name          = "${azurerm_resource_group.kubernetes.name}"
   public_ip_address_allocation = "static"
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 
@@ -12,7 +13,6 @@ resource "azurerm_network_interface" "k8smaster" {
   name                      = "k8smaster"
   location                  = "${azurerm_resource_group.kubernetes.location}"
   resource_group_name       = "${azurerm_resource_group.kubernetes.name}"
-  network_security_group_id = "${azurerm_network_security_group.kubernetes.id}"
   ip_configuration {
     name                          = "k8smaster"
     subnet_id                     = "${azurerm_subnet.kubernetes.id}"
@@ -20,7 +20,8 @@ resource "azurerm_network_interface" "k8smaster" {
     public_ip_address_id          = "${azurerm_public_ip.k8smaster.id}"
   }
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 
@@ -55,12 +56,7 @@ resource "azurerm_virtual_machine" "k8smaster" {
     }]
   }
   tags {
-    environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
-
-# data "azurerm_public_ip" "k8smaster" {
-#   name                = "${azurerm_public_ip.k8smaster.name}"
-#   resource_group_name = "${azurerm_resource_group.kubernetes.name}"
-#   depends_on          = ["azurerm_virtual_machine.k8smaster"]
-# }

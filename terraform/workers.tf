@@ -9,7 +9,8 @@ resource "azurerm_network_interface" "k8sworker" {
     private_ip_address_allocation = "dynamic"
   }
   tags {
-      environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
 
@@ -45,6 +46,7 @@ resource "azurerm_virtual_machine" "k8sworker" {
     }]
   }
   tags {
-    environment = "${var.env_tag}"
+    environment = "${var.environment}"
+    project = "${var.project}"
   }
 }
