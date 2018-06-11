@@ -1,6 +1,6 @@
 cluster:
   name: azurek8s
-  version: v1.9.2
+  version: v1.10.3
   disable_package_installation: false
   disconnected_installation: false
 
@@ -35,9 +35,7 @@ cluster:
       kube-reserved: "cpu=500m,memory=500Mi"
       system-reserved: "cpu=500m,memory=500Mi"
 
-
   cloud_provider:
-
     # Options: aws|azure|cloudstack|fake|gce|mesos|openstack|ovirt|photon|rackspace|vsphere
     # Leave config empty if provider does not require a path to a config file.
     provider: "azure"
@@ -66,18 +64,27 @@ docker_registry:
   username: ""
   password: ""
 
+additional_files: []
+
 add_ons:
   cni:
     disable: false
     # Options: calico|weave|contiv|custom
     provider: weave
+    options:
+      portmap:
+        disable: false
+      weave:
+        password: ""
 
   dns:
     disable: false
     provider: kubedns
+    options:
+      replicas: 2
 
   heapster:
-    disable: true
+    disable: false
     options:
       heapster:
         replicas: 2
@@ -91,6 +98,8 @@ add_ons:
 
   dashboard:
     disable: false
+    options:
+      service_type: ClusterIP
 
   package_manager:
     disable: false
@@ -119,6 +128,7 @@ master:
     internalip: "${master_ip}"
     labels:
       component: "master"
+    taints: []
 
 worker:
   expected_count: 2
@@ -128,12 +138,14 @@ worker:
     internalip: "${node1_ip}"
     labels:
       component: "worker"
+    taints: []
 
   - host: "k8sworker2"
     ip: "${node2_ip}"
     internalip: "${node2_ip}"
     labels:
       component: "worker"
+    taints: []
 
 ingress:
   expected_count: 1
@@ -143,10 +155,9 @@ ingress:
     internalip: "${node1_ip}"
     labels:
       component: "ingress"
+      node-role.kubernetes.io/ingress: ""
+    taints: []
 
 storage:
   expected_count: 0
   nodes: []
-
-nfs:
-  nfs_volume: []
